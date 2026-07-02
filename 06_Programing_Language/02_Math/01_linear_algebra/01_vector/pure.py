@@ -1,5 +1,3 @@
-"""
-"""
 import math
 
 def vector_add(a: list, b: list) -> list:

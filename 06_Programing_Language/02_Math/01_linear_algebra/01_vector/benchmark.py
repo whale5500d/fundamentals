@@ -6,8 +6,8 @@
 """
 
 import time
-import numpy as np
-from pure_vector import vector_add, scalar_multiply, dot_product, norm
+import numpy as npw
+from pure import vector_add, scalar_multiply, dot_product, norm
 
 REPEAT = 10
 
