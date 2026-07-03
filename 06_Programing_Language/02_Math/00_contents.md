@@ -34,10 +34,13 @@
 
 ### 선형대수학
 
-1. 벡터와 연산: 덧셈, 스칼라곱, 내적, norm - numpy.dot, numpy.linalg.norm
-2. 행렬과 기본 연산: 행렬 덧셈, 전치, 행렬곱 - numpy.matnul, .T
-3. 선형 시스템: 가우스 소거법 - numpy.linalg.solve
-4. 역행렬과 행렬식: 가우스 조던 소거법으로 역행렬 계산 - numpy.linalg.inv, numpy.linalg.det
-5. 고유값, 고유벡터: 거듭제곱법으로 최대 고유값 근사 - numpy.linalg.eig
-6. SVD(특이값 분해): 직접 구현은 생략, 원리만 이해 - numpy.linalg.svd
-7. PCA(주성분 분석): 공분산 행렬 계산 -> 고유값 분해 -> 차원 축소 전체 파이프라인 구현 - sklearn.decomposition.PCA
+**표 1. 선형대수학 학습 순서 및 구현 대상**
+| 단계 | 개념 | 구현 대상 (순수 Python) | 검증 라이브러리 |
+| --- | --- | --- | --- |
+| 1 | 벡터(vector)와 벡터 연산 | 덧셈, 스칼라곱(scalar multiplication), 내적(dot product), norm(노름) | numpy.dot, numpy.linalg.norm |
+| 2 | 행렬(matrix)과 기본 연산 | 행렬 덧셈, 전치(transpose), 행렬곱(matrix multiplication) | numpy.matmul, .T |
+| 3 | 선형 시스템(linear system) | 가우스 소거법(Gaussian elimination)으로 Ax=b 풀기 | numpy.linalg.solve |
+| 4 | 역행렬(inverse)과 행렬식(determinant) | 가우스-조던 소거법(Gauss-Jordan)으로 역행렬 계산 | numpy.linalg.inv, numpy.linalg.det |
+| 5 | 고유값(eigenvalue)·고유벡터(eigenvector) | 거듭제곱법(power iteration)으로 최대 고유값 근사 | numpy.linalg.eig |
+| 6 | SVD(특이값 분해) | 직접 구현은 생략 권장, 원리만 이해 | numpy.linalg.svd |
+| 7 | 응용: PCA(주성분 분석) | 공분산 행렬 계산 → 고유값 분해 → 차원 축소 전체 파이프라인 구현 | sklearn.decomposition.PCA |

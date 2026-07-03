@@ -86,8 +86,6 @@ $(A · C){ik} = Σ(j=1 to n) A{ij} × C\_{jk}$
 
 세 가지 특징을 확인할 수 있음.
 
-1. **transpose의 극단적 speedup**: n=1,000에서 37,887x로 다른 연산과 비교할 수 없는 수준임. 순수 Python의 transpose는 n²번의 원소 접근과 리스트 생성을 수행하는 반면, NumPy의 transpose는 실제로 데이터를 복사하지 않음. 내부적으로 stride(스트라이드, 메모리 접근 간격)만 교환하는 O(1) 연산으로 처리되기 때문임. 즉 NumPy의 .T는 메모리 레이아웃 자체는 그대로 두고 "행과 열을 어떻게 읽을지"에 대한 메타데이터만 변경함.
+1. **transpose의 극단적 speedup**: n=1,000에서 33,8988로 다른 연산과 비교할 수 없는 수준임. 순수 Python의 transpose는 n²번의 원소 접근과 리스트 생성을 수행하는 반면, NumPy의 transpose는 실제로 데이터를 복사하지 않음. 내부적으로 stride(스트라이드, 메모리 접근 간격)만 교환하는 O(1) 연산으로 처리되기 때문임. 즉 NumPy의 .T는 메모리 레이아웃 자체는 그대로 두고 "행과 열을 어떻게 읽을지"에 대한 메타데이터만 변경함.
 
-2. **matmul의 speedup이 n에 따라 급격히 증가**: O(n³) 복잡도로 인해 순수 Python은 n=200에서 이미 682ms가 소요됨. NumPy는 내부적으로 BLAS(Basic Linear Algebra Subprograms)의 DGEMM(Double GEneral Matrix Multiply) 루틴을 호출하여 캐시(cache) 친화적 블록 행렬 분해와 SIMD(Single Instruction Multiple Data) 명령어를 결합해 처리함. 이것이 n이 클수록 speedup이 누적되는 이유임.
-
-3. **transpose의 소규모(n=10) 역전**: 1단계의 벡터 연산과 동일한 패턴으로, NumPy 호출 고정 오버헤드가 데이터가 작을 때 실제 연산 비용을 초과함.
+2. **matmul의 speedup이 n에 따라 급격히 증가**: O(n³) 복잡도로 인해 순수 Python은 n=200에서 이미 660ms가 소요됨. NumPy는 내부적으로 BLAS(Basic Linear Algebra Subprograms)의 DGEMM(Double General Matrix Multiply) 루틴을 호출하여 캐시(cache) 친화적 블록 행렬 분해와 SIMD(Single Instruction Multiple Data) 명령어를 결합해 처리함. 이것이 n이 클수록 speedup이 누적되는 이유임.
