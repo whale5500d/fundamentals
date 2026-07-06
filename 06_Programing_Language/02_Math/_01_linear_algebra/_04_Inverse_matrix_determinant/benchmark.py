@@ -13,7 +13,7 @@ SIMD (Single Instruction Multiple Data) 명령어로 처리함.
 import time
 import random
 import numpy as np
-from pure import inverse, determinant
+from _01_linear_algebra._04_Inverse_matrix_determinant.pure import inverse, determinant
 
 REPEAT = 3
 
@@ -56,5 +56,5 @@ def benchmark(n: int):
 
 if __name__ == "__main__":
     print("역행렬·행렬식 속도 비교 (n×n 정방 행렬, 반복 횟수 = {})".format(REPEAT))
-    for n in [5, 10, 50, 100, 200, 500]:
+    for n in [5, 10, 50, 100, 200]:
         benchmark(n)

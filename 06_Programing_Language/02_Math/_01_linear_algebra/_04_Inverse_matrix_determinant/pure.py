@@ -1,5 +1,5 @@
 import copy
-from 03_linear_system_gaussian_elimination.pure import SingularMatrixError
+from _01_linear_algebra._03_linear_system_gaussian_elimination.pure import SingularMatrixError
 
 def _identity(n: int) -> list:
     """n*n 단위 행렬(identity matrix) 생성"""

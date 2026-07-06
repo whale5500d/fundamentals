@@ -2,8 +2,8 @@ import math
 import numpy as np
 import pytest
 
-from pure import inverse, determinant
-from 03_linear_system_gaussian_elimination.pure import SingularMatrixError
+from _01_linear_algebra._04_Inverse_matrix_determinant.pure import inverse, determinant
+from _01_linear_algebra._03_linear_system_gaussian_elimination.pure import SingularMatrixError
 
 
 # ── 헬퍼 ─────────────────────────────────────────────────────────────────────
