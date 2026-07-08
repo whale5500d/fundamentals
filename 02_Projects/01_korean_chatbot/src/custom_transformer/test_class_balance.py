@@ -68,25 +68,29 @@ def greedy_generate_first_token(model, tokenizer, prompt: str) -> str:
     return tokenizer.decode([next_token_id])
 
 
-def test_generation_bias_on_unseen_prompts(model, tokenizer, unseen_prompts: list):
+def test_generation_accuracy_by_expected_class(model, tokenizer, prompts_with_expected: list):
     """
-    학습 데이터에 없던 질문(같은 구조, 다른 명사 조합 또는 살짝 다른 어미)에 대해
-    greedy decoding으로 첫 토큰을 확인. "응"으로 시작하는 토큰이 압도적으로
-    많이 나오면, 데이터 불균형이 실제 편향으로 이어졌다는 증거가 된다.
+    각 프롬프트가 실제로 무엇을 기대하는지(expected: '응' 또는 '아니')와 함께 받아서,
+    클래스별로 정확도를 따로 측정한다. 클래스 불균형이 실제 문제라면, '아니'가
+    정답인 그룹에서 정확도가 뚜렷하게 낮게 나와야 한다(모델이 소수 클래스를
+    무시하고 다수 클래스인 '응'으로 도피하는 경향).
     """
-    yes_first_token_count = 0
-    for prompt in unseen_prompts:
+    results = {"응": [], "아니": []}
+    for prompt, expected in prompts_with_expected:
         first_token = greedy_generate_first_token(model, tokenizer, prompt)
-        is_yes_leaning = "응" in first_token or first_token == "응"
-        print(f"  프롬프트: {prompt!r} -> 첫 토큰: {first_token!r} "
-              f"({'응 편향' if is_yes_leaning else '기타'})")
-        if is_yes_leaning:
-            yes_first_token_count += 1
+        is_correct = expected in first_token
+        results[expected].append(is_correct)
+        print(f"  프롬프트: {prompt!r:24s} 기대={expected!r} -> 생성 첫 토큰: {first_token!r} "
+              f"({'정답' if is_correct else '오답'})")
 
-    bias_ratio = yes_first_token_count / len(unseen_prompts)
-    print(f"\n미학습 프롬프트 {len(unseen_prompts)}개 중 '응'으로 시작: "
-          f"{yes_first_token_count}개 ({bias_ratio*100:.1f}%)")
-    return bias_ratio
+    print()
+    for expected_class, outcomes in results.items():
+        if not outcomes:
+            continue
+        accuracy = sum(outcomes) / len(outcomes)
+        print(f"'{expected_class}'가 정답인 그룹 정확도: {sum(outcomes)}/{len(outcomes)} "
+              f"({accuracy*100:.1f}%)")
+    return results
 
 
 def main():
@@ -148,25 +152,37 @@ def main():
     print(f"\n원문 그대로 넣었을 때 정답률: {memorized_correctly}/{len(memorization_check_prompts)} "
           f"({memorized_correctly/len(memorization_check_prompts)*100:.1f}%)")
 
-    print("\n--- 3. 미학습 프롬프트에 대한 생성 편향 확인 ---")
+    print("\n--- 3. 미학습 프롬프트에 대한 클래스별 생성 정확도 확인 ---")
     model.eval()
 
     # 원본 데이터에서 "번복"(동일 질문에 응/아니 둘 다 등장)이 없이,
-    # 항상 '응'으로만 고정되어 있던 명사(운동, 공부, 베이킹, 출근, 친구)만 사용.
+    # 항상 '응'으로만 고정되어 있던 명사(운동, 공부, 베이킹, 출근, 친구)와,
+    # 항상 '아니'로만 고정되어 있던 명사(조깅, 쇼핑, 여행) 둘 다 사용한다.
     # 헬스장/피크닉/회의/영화처럼 원본에서 이미 중복 질문으로 번복되던 명사는
-    # 제외한다 -- 그 경우는 "편향"이 아니라 원래부터 정답이 하나로 정해지지
+    # 제외한다 -- 그 경우는 편향이 아니라 원래부터 정답이 하나로 정해지지
     # 않은 질문이므로, 순수한 클래스 불균형 진단에 섞이면 안 된다.
-    unseen_prompts = [
-        "내일 운동 갈 거야?",     # 원본은 "내일 운동 할 거야?" -> 어미만 다름
-        "오늘 공부 할 거야?",     # 원본은 "내일 공부 할 거야?" -> 시점만 다름
-        "오늘 베이킹 할 거야?",   # 원본은 "내일 베이킹 할 거야?" -> 시점만 다름
-        "내일 출근 할 거야?",     # 원본은 "오늘 출근 할 거야?" -> 시점만 다름
-        "내일 친구 만날 거야?",   # 원본은 "오늘 친구 만날 거야?" -> 시점만 다름
+    prompts_with_expected = [
+        ("내일 운동 갈 거야?", "응"),      # 원본 "내일 운동 할 거야?" -> 응
+        ("오늘 공부 할 거야?", "응"),      # 원본 "내일 공부 할 거야?" -> 응
+        ("오늘 베이킹 할 거야?", "응"),    # 원본 "내일 베이킹 할 거야?" -> 응
+        ("내일 출근 할 거야?", "응"),      # 원본 "오늘 출근 할 거야?" -> 응
+        ("내일 친구 만날 거야?", "응"),    # 원본 "오늘 친구 만날 거야?" -> 응
+        # C단계 재진단의 핵심: 클래스 불균형(응 17개, 아니 7개)이 실제 문제라면,
+        # 소수 클래스인 '아니' 그룹에서 정확도가 뚜렷하게 낮아야 한다.
+        # 요일(오늘/내일)을 바꾸면 원본의 다른 행(응 케이스)과 겹치는 경우가 있어
+        # (예: 여행), 요일·명사 조합은 원본의 '아니' 케이스 그대로 유지하고
+        # 어미(할/갈/볼 등)만 바꿔서 진짜 미학습 문장을 만든다.
+        ("내일 조깅 갈 거야?", "아니"),    # 원본 "내일 조깅 할 거야?"(할->갈) -> 아니
+        ("오늘 쇼핑 할 거야?", "아니"),    # 원본 "오늘 쇼핑 갈 거야?"(갈->할) -> 아니
+        ("내일 여행 떠날 거야?", "아니"),  # 원본 "내일 여행 갈 거야?"(갈->떠날) -> 아니
     ]
-    bias_ratio = test_generation_bias_on_unseen_prompts(model, tokenizer, unseen_prompts)
+    results = test_generation_accuracy_by_expected_class(model, tokenizer, prompts_with_expected)
 
+    yes_accuracy = sum(results["응"]) / len(results["응"]) if results["응"] else None
+    no_accuracy = sum(results["아니"]) / len(results["아니"]) if results["아니"] else None
     print(f"\n결론: 데이터 응:아니 비율은 {yes_count}:{no_count}였고, "
-          f"미학습 프롬프트에서 '응' 편향 비율은 {bias_ratio*100:.1f}%였습니다.")
+          f"미학습 프롬프트에서 '응' 그룹 정확도는 {yes_accuracy*100:.1f}%, "
+          f"'아니' 그룹 정확도는 {no_accuracy*100:.1f}%였습니다.")
 
 
 if __name__ == "__main__":
