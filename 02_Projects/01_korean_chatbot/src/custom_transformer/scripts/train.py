@@ -48,7 +48,7 @@ def main():
     print("=== Instruction Tuning 훈련 루프 시작 ===\n")
 
     # 1. QA 쌍 데이터 로딩
-    qa_pairs = load_qa_pairs("scripts/data/korean_qa.txt")
+    qa_pairs = load_qa_pairs("src/custom_transformer/scripts/raw_data/korean_qa.txt")
     print(f"학습 데이터 수: {len(qa_pairs)} 쌍")
 
     # 2. BPE Tokenizer 초기화 및 훈련

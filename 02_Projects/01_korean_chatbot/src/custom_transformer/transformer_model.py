@@ -6,6 +6,22 @@ from custom_transformer.model.transformer_decoder import TransformerDecoder
 from custom_transformer.model.decoder_layer import DecoderLayer
 from custom_transformer.model.utils.generation_utils import trim_after_eos
 
+def generate_causal_mask(seq_len: int, device=None) -> torch.Tensor:
+    """
+    causal mask(인과 마스크) 생성.
+
+    mask[i, j] = 1  (j <= i, 즉 자기 자신과 과거 위치는 허용)
+    mask[i, j] = 0  (j > i, 즉 미래 위치는 차단 -> scaled_dot_product_attention.py의
+                     masked_fill(mask == 0, -inf)에서 -inf로 채워짐)
+
+    (1, 1, seq_len, seq_len) 모양으로 반환한다. multi_head_attention.py에서
+    Q, K, V가 (batch, num_heads, seq, head_dim)로 쪼개진 뒤 계산되는
+    attention score의 모양이 (batch, num_heads, seq, seq)이므로, 앞의 두
+    차원(1, 1)이 배치·헤드 차원에 브로드캐스팅되도록 맞춘 것이다.
+    """
+    mask = torch.tril(torch.ones(seq_len, seq_len, device=device))
+    return mask.unsqueeze(0).unsqueeze(0)
+
 class TransformerLanguageModel(nn.Module):
     def __init__(self, 
                  vocab_size: int,
@@ -38,8 +54,16 @@ class TransformerLanguageModel(nn.Module):
         """
         input_ids: (batch_size, seq_len)
 
+        mask가 명시적으로 주어지지 않으면, 이 시점의 seq_len에 맞는 causal mask를
+        자동으로 생성한다. 이렇게 하면 train.py, generate() 등 호출부 코드를
+        전혀 수정하지 않아도, 항상 causal 구조가 적용된다.
+
         TODO: Pre-LN vs Post-LN 구조 변경 검토 (DecoderLayer 내부에 Post-LN 주석 있음)
         """
+        if mask is None:
+            seq_len = input_ids.size(1)
+            mask = generate_causal_mask(seq_len, device=input_ids.device)
+
         # Embedding
         x = self.embedding(input_ids) * (self.d_model ** 0.5)  # 원본 논문에서 사용한 scaling 방법 (선택)
 

@@ -9,12 +9,236 @@
 **표 1. 개선 작업 로드맵**
 | 단계 | 다루는 문제 | 상태 |
 | --- | --- | --- |
-| A | weight tying 버그 (`transformer_decoder.py`) | 진단 완료, 수정 대기 |
-| B | 클래스 불균형 (응:아니 = 3:1) | 예정 |
-| C | 과적합 (데이터 24개 vs 파라미터 수백만) | 예정 |
-| D | 문형 단일성 (일반화 실패) | 예정 |
-| E | Post-LN → Pre-LN | 예정 |
-| F | mask 차원, batch 생성 | 예정 |
+| A | causal mask 부재 (`scaled_dot_product_attention.py`, `transformer_model.py`) | 완료 |
+| B | weight tying 버그 (`transformer_decoder.py`) | 완료 |
+| C | 클래스 불균형 (응:아니 = 17:7) | 진행 중 (A단계 결함으로 결과 오염 확인, A단계 수정 후 재진단 필요) |
+| D | 과적합 (데이터 24개 vs 파라미터 수백만) | 예정 |
+| E | 문형 단일성 (일반화 실패) | 예정 |
+| F | Post-LN → Pre-LN | 예정 |
+| G | mask 차원, batch 생성 | 예정 |
+
+## A단계: causal mask 부재
+
+### 진단 방법
+
+- `test_class_balance.py`로 데이터 응/아니 비율과, 미학습 프롬프트에 대한
+  생성 편향을 확인합니다.
+- `test_sequential_interference.py`로 학습 종료 후 24개 샘플을 개별
+  재평가하고, 답변의 첫 토큰(응/아니가 갈리는 지점)만의 개별 loss와
+  실제 greedy 생성 결과를 같은 모델 인스턴스에서 비교합니다.
+- `test_causal_mask_leak.py`로, 같은 논리적 위치(질문의 마지막 토큰)의
+  logits이 그 뒤에 어떤 토큰이 이어붙는지에 따라 달라지는지 직접 비교합니다.
+
+```bash
+python3 src/custom_transformer/test_class_balance.py
+python3 src/custom_transformer/test_sequential_interference.py
+python3 src/custom_transformer/test_causal_mask_leak.py
+```
+
+### 진단 결과
+
+**1. 데이터 분포 및 생성 편향 확인 (`test_class_balance.py`)**
+
+```bash
+전체 QA 쌍: 24개
+'응'으로 시작: 17개
+'아니'로 시작: 7개
+응:아니 비율 = 17:7 (약 2.4:1)
+
+미학습 프롬프트(번복 없이 응으로만 고정된 명사 5개)에 대한 생성 결과:
+  '내일 운동 갈 거야?' -> '아니,'
+  '오늘 공부 할 거야?' -> '아니,'
+  '오늘 베이킹 할 거야?' -> '아니,'
+  '내일 출근 할 거야?' -> '아니,'
+  '내일 친구 만날 거야?' -> '아니,'
+
+미학습 프롬프트 5개 중 '응'으로 시작: 0개 (0.0%)
+
+학습 데이터 원문을 그대로 넣었을 때도(암기 확인):
+  '내일 운동 할 거야?' -> '아니,' (암기 실패)
+  '내일 공부 할 거야?' -> '아니,' (암기 실패)
+  '내일 베이킹 할 거야?' -> '아니,' (암기 실패)
+  '오늘 출근 할 거야?' -> '아니,' (암기 실패)
+  '오늘 친구 만날 거야?' -> '아니,' (암기 실패)
+
+원문 그대로 넣었을 때 정답률: 0/5 (0.0%)
+```
+
+- 데이터 응:아니 비율(17:7)만으로는 설명되지 않는 결과입니다. 데이터에서
+  '응'으로만 100% 고정됐던 명사조차, 학습 데이터 원문을 그대로 넣어도
+  전부 '아니'로 생성되어 암기 자체가 실패했습니다.
+- 클래스 불균형 가설(원래 B단계, 현 C단계)로는 이 결과를 설명할 수 없어,
+  더 근본적인 원인 조사가 필요했습니다.
+
+**2. 순차 학습 간섭 가설 검증 (`test_sequential_interference.py`)**
+
+```bash
+재평가 평균 loss: 0.0010 (24개 샘플 전부 0.0006~0.0014 범위, 매우 낮음)
+loss가 1.0을 넘는(사실상 학습이 안 된) 샘플 개수: 0개
+
+첫 토큰(응/아니 분기점)만 개별 확인 + 같은 모델로 실제 greedy 생성:
+  [ 2] '오늘 조깅 할 거야?'  정답='응,' 첫토큰loss=0.0006  greedy='아니,' (불일치)
+  [ 4] '오늘 여행 갈 거야?'  정답='응,' 첫토큰loss=0.0007  greedy='아니,' (불일치)
+  [ 5] '내일 공부 할 거야?'  정답='응,' 첫토큰loss=0.0007  greedy='아니,' (불일치)
+  ... (고유 질문 13개 중 7개 불일치)
+```
+
+- 셔플 없는 순차 학습이 원인이라는 가설은 기각되었습니다. 24개 전부(중복
+  질문 포함) teacher forcing 기준 loss가 극히 낮았기 때문입니다.
+- 다만 중복(번복) 질문이 아닌, 정답이 유일하게 정해진 고유 질문 13개 중
+  7개에서 "첫 토큰 loss는 극히 낮은데(0.0006~0.0008, 사실상 확신) greedy
+  생성은 반대로 나온다"는 모순이 발견되었습니다. 이 모순이 다음 검증으로
+  이어졌습니다.
+
+**3. causal mask 결함 직접 검증 (`test_causal_mask_leak.py`)**
+
+```bash
+=== causal mask 결함 검증 (학습 전, 무작위 초기화 상태) ===
+
+검증 대상 질문: '오늘 조깅 할 거야?'
+
+(1) 질문만 입력했을 때, 질문 마지막 위치의 logits 앞 5개:
+[-0.9910, -0.5336, 0.7548, 0.4665, 0.9181]
+(2) 질문+정답 이어붙였을 때, 같은 위치의 logits 앞 5개:
+[-0.5051, -0.5571, 0.9510, 0.5149, 0.9154]
+
+두 logits이 완전히 동일한가: False
+최대 절댓값 차이: 0.56482679
+```
+
+- 학습을 하지 않은 무작위 초기화 상태에서도, 같은 논리적 위치(질문의
+  마지막 토큰)의 출력이 그 뒤에 정답 토큰이 이어붙는지 여부에 따라
+  달라졌습니다. 이는 causal(자기회귀적) 구조가 구조적으로 깨져 있다는
+  직접적인 증거입니다.
+- 실제 코드베이스를 전수 검색한 결과, causal mask를 생성하는 코드
+  (`torch.tril`, `torch.triu` 등)가 프로젝트 전체에 단 한 줄도
+  존재하지 않았습니다.
+
+```bash
+$ grep -rn 'causal' src/custom_transformer/
+(진단 스크립트 자체의 주석/문자열 외에는 결과 없음)
+
+$ grep -rn 'tril\|triu\|mask =' src/custom_transformer/
+src/custom_transformer/model/scaled_dot_product_attention.py:36:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+(mask를 "사용"하는 코드만 존재, "생성"하는 코드는 없음)
+```
+
+- `transformer_model.py`의 `forward(self, input_ids, mask=None)`은
+  기본값이 `None`이고, `train.py`가 `model(inputs_tensor)`를 호출할 때
+  `mask` 인자를 전혀 넘기지 않습니다. 따라서 `ScaledDotProductAttention`의
+  `if mask is not None:` 블록이 실행 경로 전체에서 단 한 번도 작동하지
+  않습니다.
+
+**결론: 이 프로젝트는 처음 만들어진 이후 단 한 번도 causal(자기회귀적)
+구조로 작동한 적이 없습니다. 학습 시(질문+정답이 함께 입력됨) 모델이
+아직 생성하지 않은 미래의 정답 토큰을 attention으로 몰래 참조할 수 있어,
+loss는 낮게 나오지만(`0.0006~0.0014`) 실제 생성(질문만 입력)에서는 이
+정보가 없어 정답률이 크게 떨어집니다. 이는 weight tying(구 A단계, 현
+B단계)보다 근본적이고 우선순위가 높은 결함이며, C단계(클래스 불균형)에서
+관찰했던 이상 현상들의 실제 원인일 가능성이 큽니다.**
+
+### 원인 분석
+
+- `scaled_dot_product_attention.py`는 `mask`가 주어지면 미래 위치를
+  `-inf`로 채워 가리는 로직(`masked_fill`)은 갖추고 있지만, 그 `mask`
+  자체를 생성하는 코드는 프로젝트 어디에도 없습니다.
+- `transformer_model.py`의 `forward()`가 `mask=None`을 기본값으로 받고,
+  `train.py`의 학습 루프와 `generate()` 메서드 둘 다 `model()`을 호출할
+  때 `mask` 인자를 전달하지 않습니다.
+- 결과적으로 `DecoderLayer` → `MultiHeadAttention` → `ScaledDotProductAttention`
+  전체 호출 체인에서 `mask`는 항상 `None`으로 유지되어, "미래 토큰을
+  가린다"는 Transformer decoder의 핵심 전제 자체가 적용되지 않고
+  있었습니다.
+
+### 개선 방법
+
+`transformer_model.py`에 causal mask를 생성하는 함수를 추가하고, `forward()`가 `mask`를 받지 못했을 때 이 함수로 자동 생성하도록 수정합니다. `train.py`, `generate()` 등 호출부 코드는 전혀 수정하지 않아도, `forward()` 내부에서 처리됩니다.
+
+```python
+# 신규 추가 함수
+def generate_causal_mask(seq_len: int, device=None) -> torch.Tensor:
+    """
+    causal mask(인과 마스크) 생성.
+
+    mask[i, j] = 1  (j <= i, 자기 자신과 과거 위치는 허용)
+    mask[i, j] = 0  (j > i, 미래 위치는 차단 -> masked_fill(mask==0, -inf)에서 -inf로 채워짐)
+
+    (1, 1, seq_len, seq_len) 모양으로 반환. multi_head_attention.py에서
+    attention score의 모양이 (batch, num_heads, seq, seq)이므로, 앞의 두
+    차원(1, 1)이 배치·헤드 차원에 브로드캐스팅되도록 맞춘 것.
+    """
+    mask = torch.tril(torch.ones(seq_len, seq_len, device=device))
+    return mask.unsqueeze(0).unsqueeze(0)
+
+
+# Before — TransformerLanguageModel.forward()
+def forward(self, input_ids, mask=None):
+    x = self.embedding(input_ids) * (self.d_model ** 0.5)
+    x = self.pos_encoding(x)
+    x = self.decoder(x, mask)
+    logits = self.output_linear(x)
+    return logits
+
+# After
+def forward(self, input_ids, mask=None):
+    if mask is None:
+        seq_len = input_ids.size(1)
+        mask = generate_causal_mask(seq_len, device=input_ids.device)
+
+    x = self.embedding(input_ids) * (self.d_model ** 0.5)
+    x = self.pos_encoding(x)
+    x = self.decoder(x, mask)
+    logits = self.output_linear(x)
+    return logits
+```
+
+- `generate()`는 매 스텝마다 길이가 늘어난 `input_ids`로 `self(input_ids)`를 반복 호출합니다. `forward()`가 매번 그 시점의 `seq_len`에 맞는 mask를 자동으로 새로 만들기 때문에, `generate()` 코드를 고치지 않아도 모든 생성 스텝에 causal mask가 적용됩니다.
+
+### 개선 결과
+
+**1. causal mask 결함 재검증 (`test_causal_mask_fixed.py`)**
+
+```bash
+두 logits이 동일한가: True
+최대 절댓값 차이: 0.00000000
+PASS: causal mask가 정상적으로 미래 토큰을 차단하고 있음을 확인
+```
+
+- 수정 전 최대 차이 `0.56482679`였던 것이, 수정 후 `0.00000000`으로
+  완전히 일치했습니다. 같은 논리적 위치(질문의 마지막 토큰)의 출력이
+  이제 뒤에 무엇이 이어붙든 달라지지 않습니다.
+
+**2. `test_class_balance.py` 재실행 결과**
+
+```bash
+--- 3-0. 학습 데이터 원문 자체를 암기했는지 먼저 확인 ---
+  '내일 운동 할 거야?' -> '응,' (정답)
+  '내일 공부 할 거야?' -> '응,' (정답)
+  '내일 베이킹 할 거야?' -> '응,' (정답)
+  '오늘 출근 할 거야?' -> '응,' (정답)
+  '오늘 친구 만날 거야?' -> '응,' (정답)
+
+원문 그대로 넣었을 때 정답률: 5/5 (100.0%)
+
+--- 3. 미학습 프롬프트에 대한 생성 편향 확인 ---
+  '내일 운동 갈 거야?' -> '응,' (응 편향)
+  '오늘 공부 할 거야?' -> '응,' (응 편향)
+  '오늘 베이킹 할 거야?' -> '응,' (응 편향)
+  '내일 출근 할 거야?' -> '응,' (응 편향)
+  '내일 친구 만날 거야?' -> '응,' (응 편향)
+
+미학습 프롬프트 5개 중 '응'으로 시작: 5개 (100.0%)
+```
+
+**표 1. A단계 수정 전후 완전 대조**
+| 검증 항목 | 수정 전 | 수정 후 |
+| --- | --- | --- |
+| causal mask logits 동일성 | `False` (최대 차이 `0.565`) | `True` (최대 차이 `0.0`) |
+| 학습 원문 암기 정답률 | 0/5 (0.0%) | 5/5 (100.0%) |
+| 미학습 프롬프트(응으로만 고정된 명사) 생성 결과 | 전부 '아니' (0.0%) | 전부 '응' (100.0%) |
+
+**결론: A단계(causal mask 부재) 수정으로, 암기(3-0)와 일반화(3) 둘 다 완전히 정상화되었습니다. 지금까지 이상 현상(암기 실패, 편향처럼 보였던 생성 결과)이 실제로는 causal mask 결함의 증상이었습니다.**
 
 ## B단계: weight tying 버그
 
