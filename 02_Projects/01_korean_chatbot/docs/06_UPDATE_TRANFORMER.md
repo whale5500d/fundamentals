@@ -16,7 +16,9 @@
 | E | Post-LN → Pre-LN | 예정 |
 | F | mask 차원, batch 생성 | 예정 |
 
-## 진단 방법
+## B단계: weight tying 버그
+
+### 진단 방법
 
 - `test_parameter_counting.py`로 파라미터 개수를 확인합니다. 전체 파라미터 개수와 각 텐서별 파라미터 개수를 확인할 수 있습니다.
 - `test_layer_independence.py`로 4개 층의 객체 id가 실제로 다른지 확인합니다.
@@ -25,8 +27,6 @@
 python3 src/custom_transformer/test_parameter_counting.py
 python3 src/custom_transformer/test_layer_independence.py
 ```
-
-## A단계: weight tying 버그
 
 ### 진단 결과
 
