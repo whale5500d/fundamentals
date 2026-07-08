@@ -436,11 +436,8 @@ PASS: test_layers_diverge_after_training (학습 후 모든 층 쌍의 L2 거리
 
 ### 진단 방법
 
-- `test_class_balance.py`로 데이터 응/아니 비율을 확인하고, 학습 데이터
-  원문 암기 여부와 미학습 프롬프트에 대한 클래스별(응/아니) 생성 정확도를
-  확인합니다.
-- `test_class_balance_repeated.py`로 동일한 파이프라인(학습→평가)을
-  `seed` 고정 없이 5회 반복 실행하여, 결과의 안정성을 확인합니다.
+- `test_class_balance.py`로 데이터 응/아니 비율을 확인하고, 학습 데이터 원문 암기 여부와 미학습 프롬프트에 대한 클래스별(응/아니) 생성 정확도를 확인합니다.
+- `test_class_balance_repeated.py`로 동일한 파이프라인(학습→평가)을 `seed` 고정 없이 5회 반복 실행하여, 결과의 안정성을 확인합니다.
 
 ```bash
 python3 src/custom_transformer/test_class_balance.py
@@ -460,27 +457,18 @@ python3 src/custom_transformer/test_class_balance_repeated.py
   '아니' 그룹: 2/3 (66.7%) -- '오늘 쇼핑 할 거야?' 오답
 ```
 
-- '아니' 그룹에서 유일하게 틀린 "쇼핑" 사례를 분석한 결과, 진단 프롬프트
-  자체가 원본 데이터의 '응' 케이스(내일+할)와 '아니' 케이스(오늘+갈)
-  사이에서 요일·어미가 절반씩 겹치는 애매한 조합이었다는 것이 확인됐습니다.
-- 다만 표본 수(응 5개 vs 아니 3개) 자체가 너무 적어, 이 결과만으로
-  "클래스 불균형이 문제다/아니다"를 결론짓기 어려웠습니다.
+- '아니' 그룹에서 유일하게 틀린 "쇼핑" 사례를 분석한 결과, 진단 프롬프트 자체가 원본 데이터의 '응' 케이스(내일+할)와 '아니' 케이스(오늘+갈) 사이에서 요일·어미가 절반씩 겹치는 애매한 조합이었다는 것이 확인됐습니다.
+- 다만 표본 수(응 5개 vs 아니 3개) 자체가 너무 적어, 이 결과만으로 "클래스 불균형이 문제다/아니다"를 결론짓기 어려웠습니다.
 
 ### 원인 분석
 
-- 데이터 24개 중, 요일·어미·번복이 뒤섞이지 않고 순수하게 한쪽 클래스로만
-  고정된 "순수 케이스"는 응 5개, 아니 2~3개뿐이었습니다.
-- 표본이 이렇게 적으면, 특정 단어 하나의 우연한 얽힘(예: 쇼핑)이 전체
-  클래스 정확도를 크게 흔들어버려 정확한 진단이 어렵습니다.
-- 데이터를 무작정 늘리기보다, 명사당 정답을 하나로 고정하고 어미·요일을
-  다양화하는 방식(통제된 확장)으로 순수 케이스 자체를 늘리기로 했습니다.
+- 데이터 24개 중, 요일·어미·번복이 뒤섞이지 않고 순수하게 한쪽 클래스로만 고정된 "순수 케이스"는 응 5개, 아니 2~3개뿐이었습니다.
+- 표본이 이렇게 적으면, 특정 단어 하나의 우연한 얽힘(예: 쇼핑)이 전체 클래스 정확도를 크게 흔들어버려 정확한 진단이 어렵습니다.
+- 데이터를 무작정 늘리기보다, 명사당 정답을 하나로 고정하고 어미·요일을 다양화하는 방식(통제된 확장)으로 순수 케이스 자체를 늘리기로 했습니다.
 
 ### 개선 방법
 
-- `korean_qa.txt`에 새로운 명사 6개(수영, 등산, 낚시 — 아니 클래스 / 요가,
-  캠핑, 청소 — 응 클래스)를 추가했습니다. 각 명사는 어미·요일을 다양화하되
-  정답 클래스는 고정해서, "이 명사는 항상 이 클래스"라는 관계가 명확하게
-  드러나도록 설계했습니다.
+- `korean_qa.txt`에 새로운 명사 6개(수영, 등산, 낚시 — 아니 클래스 / 요가, 캠핑, 청소 — 응 클래스)를 추가했습니다. 각 명사는 어미·요일을 다양화하되 정답 클래스는 고정해서, "이 명사는 항상 이 클래스"라는 관계가 명확하게 드러나도록 설계했습니다.
 
   ```txt
   <!-- 신규 추가 9개 줄 (기존 24개는 그대로 유지) -->
@@ -533,3 +521,117 @@ python3 src/custom_transformer/test_class_balance_repeated.py
   1. "아니" 클래스 표본을 "응" 클래스 수준(21개 근처)까지 추가로 확장
   2. 데이터 추가 대신 정규화(dropout 조정) 또는 조기 종료 등 학습 방식 자체를 개선하는 방향
 - D단계(과적합)와 근본 원인이 겹칠 가능성이 있어, D단계 진행 시 이 문제를 함께 다룰 수 있습니다.
+
+## D단계: 과적합
+
+### 진단 방법
+
+- `test_overfitting.py`로 33개 데이터 중 7개(응 4개, 아니 3개)를 학습에서 완전히 제외한 validation set으로 떼어두고, epoch마다 train loss와 validation loss를 함께 측정합니다.
+
+```bash
+python3 src/custom_transformer/test_overfitting.py
+```
+
+### 진단 결과
+
+```bash
+train: 26개, validation: 7개
+
+ epoch |   train_loss |     val_loss
+     1 |       2.5318 |       2.2371
+    10 |       0.1705 |       1.5225
+    30 |       0.0569 |       1.3938
+    40 |       0.0506 |       1.3913
+    70 |       0.0459 |       1.4011
+    80 |       0.7949 |       2.2071
+   100 |       0.0492 |       1.9831
+
+validation loss가 최소였던 epoch: 39 (val_loss=1.3319)
+마지막 epoch(100): train_loss=0.0492, val_loss=1.9831
+```
+
+- `train_loss`는 `2.53 → 0.05`까지 계속 낮게 유지되는 반면, `val_loss`는 epoch 39(`1.3319`)에서 최저점을 찍은 뒤 epoch 100 시점엔 `1.9831`로 다시 크게 올랐습니다(최저 대비 +48.9%). 학습 loss는 계속 낮은데 검증 loss만 다시 오르는 전형적인 과적합 신호입니다.
+
+### 원인 분석
+
+- 현재 모델(`d_model=256, num_layers=4, d_ff=1024`)은 파라미터 `3,312,940`개(B단계 weight tying 수정 후 기준)를 갖는 반면, 학습 데이터는 33개(train 26개)뿐입니다. 모델의 표현력(capacity)이 데이터 규모에 비해 압도적으로 커서, 데이터를 일반화하기보다 암기하기 쉬운 구조입니다.
+
+### 개선 방법 및 결과 (7개 조건 비교)
+
+3가지 개선 방향(조기 종료, 모델 축소, dropout 상향)을 단독으로, 이어서 가장 효과적이었던 모델 축소를 기준으로 3가지 조합을 추가 실험했습니다. 모든 조건에서 `test_overfitting.py`와 동일한 train/validation 분리와 측정 방식을 유지했습니다.
+
+```bash
+python3 src/custom_transformer/test_overfitting_improvements.py
+```
+
+**표 1. 7개 조건 최종 비교**
+| 조건 | 설정 | best*val_loss | 종료 epoch | 반등폭 |
+| --- | --- | --- | --- | --- |
+| 베이스라인 | d_model=256, layers=4, dropout=0.1, 조기종료 없음 | 1.5214 | 100 | +20.1% |
+| 개선1*조기종료 | 베이스라인 + 조기종료(patience=10) | 1.4832 | 27 | +15.3% |
+| **개선2\_모델축소** | d*model=64, layers=2, d_ff=256 + 조기종료 | 1.6216 | 44 | **+1.7%** |
+| 개선3_dropout상향 | 베이스라인, dropout=0.4 + 조기종료 | 1.5760 | 17 | +8.0% |
+| 조합1*축소+dropout0.15 | 개선2 + dropout=0.15 | 1.7340 | 30 | +3.6% |
+| 조합2*축소+dropout0.2 | 개선2 + dropout=0.2 | 1.8307 | 31 | +4.4% |
+| 조합3*축소+patience5 | 개선2 + patience=5 | 1.6710 | 23 | +2.0% |
+
+- 조합 실험(dropout 추가, patience 축소)은 전부 개선2(순수 모델 축소)
+  대비 오히려 악화됐습니다. 이미 축소된 모델에 dropout을 더하면
+  underfitting(모델이 데이터를 충분히 학습하기도 전에 정규화가 과도하게
+  작용하는 현상)이 심해지고, patience를 더 줄이면 학습이 덜 된 상태에서
+  일찍 멈춰 best_val_loss가 소폭 나빠집니다.
+- 절대 성능(best_val_loss)만 보면 개선1(조기 종료만, `1.4832`)이
+  가장 낮았지만, 반등폭은 개선2(모델 축소, `1.7%`)가 압도적으로
+  낮았습니다(개선1은 `15.3%`).
+
+### 최종 채택: 개선2 (모델 축소 + 조기 종료)
+
+- 절대 성능(개선1)과 안정성(개선2) 중, 이번 프로젝트의 목적(Transformer 구성 요소를 근본적으로 이해하는 학습 목적)에 맞춰 **안정성**을 우선했습니다. 개선2는 D단계 원인 분석("모델이 데이터 대비 과도하게 크다")과 개선 방법(모델을 줄인다)이 직접 대응되는 반면, 개선1(조기 종료만)은 근본 원인을 건드리지 않고 증상만 완화하는 조치이기 때문입니다.
+- `d_model=256->64`, `num_layers=4->2`로 파라미터를 크게 줄였음에도 validation loss 최저값은 베이스라인과 대등했고(`1.6216` vs `1.5214`), 반등폭은 `20.1% → 1.7%`로 대폭 개선됐습니다.
+
+```bash
+전체 파라미터 수: 336,812
+embedding.weight: 19,200개
+decoder.layers.0.self_attention.q_linear.weight: 4,096개
+decoder.layers.0.self_attention.q_linear.bias: 64개
+decoder.layers.0.self_attention.k_linear.weight: 4,096개
+decoder.layers.0.self_attention.k_linear.bias: 64개
+decoder.layers.0.self_attention.v_linear.weight: 4,096개
+decoder.layers.0.self_attention.v_linear.bias: 64개
+decoder.layers.0.self_attention.out_linear.weight: 4,096개
+decoder.layers.0.self_attention.out_linear.bias: 64개
+decoder.layers.0.norm1.weight: 64개
+decoder.layers.0.norm1.bias: 64개
+decoder.layers.0.ffn.0.weight: 65,536개
+decoder.layers.0.ffn.0.bias: 1,024개
+decoder.layers.0.ffn.3.weight: 65,536개
+decoder.layers.0.ffn.3.bias: 64개
+decoder.layers.0.norm2.weight: 64개
+decoder.layers.0.norm2.bias: 64개
+decoder.layers.1.self_attention.q_linear.weight: 4,096개
+decoder.layers.1.self_attention.q_linear.bias: 64개
+decoder.layers.1.self_attention.k_linear.weight: 4,096개
+decoder.layers.1.self_attention.k_linear.bias: 64개
+decoder.layers.1.self_attention.v_linear.weight: 4,096개
+decoder.layers.1.self_attention.v_linear.bias: 64개
+decoder.layers.1.self_attention.out_linear.weight: 4,096개
+decoder.layers.1.self_attention.out_linear.bias: 64개
+decoder.layers.1.norm1.weight: 64개
+decoder.layers.1.norm1.bias: 64개
+decoder.layers.1.ffn.0.weight: 65,536개
+decoder.layers.1.ffn.0.bias: 1,024개
+decoder.layers.1.ffn.3.weight: 65,536개
+decoder.layers.1.ffn.3.bias: 64개
+decoder.layers.1.norm2.weight: 64개
+decoder.layers.1.norm2.bias: 64개
+output_linear.weight: 19,200개
+output_linear.bias: 300개
+```
+
+### 한계
+
+- 개선2를 적용해도 반등폭이 완전히 0은 아닙니다(`1.7%`). 이는 모델 크기를 줄이는 것만으로 과적합이 완전히 사라지는 게 아니라, **데이터 양(33개) 자체의 한계가 여전히 남아있다는 신호**입니다.
+  - **`반등폭(rebound_pct)` 지표 자체의 한계**: 이 지표는 논문이나 업계 표준으로 정의된 공식 지표가 아니라, 이번 진단을 위해 임의로 정의한 계산식입니다. 일반적으로 실무에서는 대략 5% 미만은 무시 가능한 수준, 5~15%는 경미한 신호, 20~30% 이상을 명확한 과적합으로 보는 경험칙이 통용되지만, 이는 공인된 기준이 아니라 관용적 어림값입니다.
+  - **validation 표본 수(7개)로 인한 통계적 불안정성**: validation set이 7개뿐이라, 샘플 1개의 loss가 소폭(약 1.0)만 바뀌어도 전체 평균이 약 10.6%로 흔들릴 수 있습니다. 따라서 개선2(`1.7%`)와 조합3(`2.0%`)처럼 차이가 작은 조건끼리는 실제로 의미 있는 차이인지 통계적으로 확신하기 어렵습니다. 다만 베이스라인(`20.1%`)과 개선2(`1.7%`) 사이의 10배 이상 격차는 이 노이즈 수준을 훨씬 벗어나므로, "모델 축소가 과적합을 뚜렷하게 완화했다"는 결론 자체는 신뢰할 수 있습니다.
+- C단계(클래스 불균형)에서 이미 "아니" 클래스 표본 부족(12개)이 학습 안정성을 떨어뜨린다는 게 확인된 바 있는데, D단계의 이 잔여 반등폭도 같은 근본 원인(데이터 절대량 부족)을 공유하는 것으로 판단됩니다.
+- 향후 데이터를 추가로 확보하면, 모델 크기를 다시 늘려도 반등폭이 억제되는지 재검증할 필요가 있습니다. 지금 시점에서는 "작은 데이터에는 작은 모델"이라는 원칙을 확인한 것으로 D단계를 마무리했습니다.
