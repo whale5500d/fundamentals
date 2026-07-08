@@ -9,10 +9,10 @@
 **표 1. 개선 작업 로드맵**
 | 단계 | 다루는 문제 | 상태 |
 | --- | --- | --- |
-| A | causal mask 부재 (`scaled_dot_product_attention.py`, `transformer_model.py`) | 완료 |
-| B | weight tying 버그 (`transformer_decoder.py`) | 완료 |
-| C | 클래스 불균형 (응:아니 = 17:7) | 부분 개선 |
-| D | 과적합 (데이터 24개 vs 파라미터 수백만) | 예정 |
+| A | causal mask 부재 (`scaled_dot_product_attention.py`, `transformer_model.py`) | 완료 ✅ |
+| B | weight tying 버그 (`transformer_decoder.py`) | 완료 ✅ |
+| C | 클래스 불균형 (응:아니 = 17:7) | 부분 개선 ✅ |
+| D | 과적합 (데이터 24개 vs 파라미터 수백만) | 부분 개선 ✅ |
 | E | 문형 단일성 (일반화 실패) | 예정 |
 | F | Post-LN → Pre-LN | 예정 |
 | G | mask 차원, batch 생성 | 예정 |
