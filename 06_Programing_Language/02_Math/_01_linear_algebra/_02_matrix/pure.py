@@ -22,7 +22,7 @@ def transpose(A: list) -> list:
     """
     m, n = shape(A)
     return [
-        [A[j][i] for i in range(m)]
+        [A[i][j] for i in range(m)]
         for j in range(n)
     ]
 
