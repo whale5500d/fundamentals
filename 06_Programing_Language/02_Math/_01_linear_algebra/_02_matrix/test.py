@@ -7,7 +7,7 @@
 import numpy as np
 import pytest
 
-from pure import shape, matrix_add, transpose, matmul
+from _01_linear_algebra._02_matrix.pure import shape, matrix_add, transpose, matmul
 
 
 # ── 헬퍼 ─────────────────────────────────────────────────────────────────────

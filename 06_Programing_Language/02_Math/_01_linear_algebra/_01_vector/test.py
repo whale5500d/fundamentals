@@ -2,7 +2,7 @@ import math
 import numpy as np
 import pytest
 
-from pure import vector_add, scalar_multiply, dot_product, norm
+from _01_linear_algebra._01_vector.pure import vector_add, scalar_multiply, dot_product, norm
 
 def test_vector_add():
     a, b = [1, 2, 3], [4, 5, 6]

@@ -16,7 +16,7 @@
 import time
 import random
 import numpy as np
-from pure import solve
+from _01_linear_algebra._03_linear_system_gaussian_elimination.pure import solve
 
 REPEAT = 3
 

@@ -13,7 +13,7 @@
 
 import time
 import numpy as np
-from pure import matrix_add, transpose, matmul
+from _01_linear_algebra._02_matrix.pure import matrix_add, transpose, matmul
 
 REPEAT = 5
 

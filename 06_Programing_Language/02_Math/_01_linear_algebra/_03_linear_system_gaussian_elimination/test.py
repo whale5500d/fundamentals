@@ -8,7 +8,7 @@ import math
 import numpy as np
 import pytest
 
-from pure import (
+from _01_linear_algebra._03_linear_system_gaussian_elimination.pure import (
     solve,
     forward_elimination,
     back_substitution,

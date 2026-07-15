@@ -7,7 +7,7 @@
 
 import time
 import numpy as npw
-from pure import vector_add, scalar_multiply, dot_product, norm
+from _01_linear_algebra._01_vector.pure import vector_add, scalar_multiply, dot_product, norm
 
 REPEAT = 10
 
