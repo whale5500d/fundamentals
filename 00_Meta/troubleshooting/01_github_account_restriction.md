@@ -7,6 +7,7 @@
 3. [계정 제한의 실제 원인 후보 특정](#트러블-슈팅-3---계정-제한의-실제-원인-후보-특정)
 4. [Archived 티켓에 대한 후속 대응 방법](#트러블-슈팅-4---archived-티켓에-대한-후속-대응-방법)
 5. [Support 사용 목적 문의에 대한 답변 수준 결정](#트러블-슈팅-5---support-사용-목적-문의에-대한-답변-수준-결정)
+6. [PAT(Personal Access Token) 개념](#트러블-슈팅-6---patpersonal-access-token-개념)
 
 ---
 
@@ -100,3 +101,19 @@ Support 담당자(Ivy)가 "GitHub을 어떻게 사용할 계획인지" 질문함
 ### 결정 및 이유
 
 카테고리 단위 설명을 선택함. 코드네임을 그대로 나열하면 담당자가 각각의 의미를 되물어야 해 처리가 오히려 지연될 우려가 있었고, 카테고리 설명만으로도 Public/Private 혼재 이유와 문제 저장소의 위치(Project 카테고리 내)를 자연스럽게 포괄할 수 있어 더 효율적이라 판단함.
+
+---
+
+## 트러블 슈팅 6 - PAT(Personal Access Token) 개념
+
+### 배경
+
+Security log에서 발견한 미인식 webhook을 조사하던 중, 유출 위험이 있는 인증 수단으로 PAT를 재발급해야 한다는 안내가 나오면서, PAT 자체가 무엇인지 확인할 필요가 있었음.
+
+### 개념 설명
+
+PAT(Personal Access Token, 개인 액세스 토큰)는 Git 작업 시 계정 비밀번호를 대체하는 인증 수단이다. 비밀번호와 달리 `repo`, `workflow`, `read:user` 등 스코프(scope) 단위로 권한을 세밀하게 제한할 수 있다. Classic PAT(스코프 단위 제어, 만료 기한 선택적)와 Fine-grained PAT(저장소·API 단위로 더 촘촘하게 제어, 만료 기한 필수) 두 종류가 있으며, `Developer settings → Personal access tokens`에서 발급·조회한다.
+
+### 적용
+
+발급된 Classic/Fine-grained PAT 목록을 직접 조회해 해당 webhook과 연결되는 토큰이 있는지 확인함. 결과적으로 목록에 없었고, 이는 트러블 슈팅 2(webhook이 OAuth App에서 비롯됨)로 이어지는 단서가 됨.
