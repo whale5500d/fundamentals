@@ -9,3 +9,6 @@
    - 00_BASIC의 06_math 폴더 → `06_Programing_Language/02_Math` 이관 (완료)
 2. 결정 사항
    - TIL 병합 보류. 기존 TIL 저장소 내용은 이번 fundamentals 구조의 TIL과 성격이 다름(부트캠프 학습 내용 등 별도 재정의 필요)
+3. 관련 문서
+   - [GitHub 계정 제한 트러블슈팅](./troubleshooting/01_github_account_restriction.md)
+   - [Git History Consolidation 트러블슈팅](./troubleshooting/02_git_history_consolidation.md)
