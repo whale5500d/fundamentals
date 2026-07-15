@@ -52,7 +52,7 @@
 - 실행 명령어
 
   ```bash
-  (.venv) python benchmark.py
+  (.venv) python3 benchmark.py
   ```
 
 - 실행 결과
