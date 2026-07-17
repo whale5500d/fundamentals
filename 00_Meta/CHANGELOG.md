@@ -19,5 +19,6 @@
    - `01_FE/04_dang_geune_daong` → 새 계정(`whale5500d`) 저장소 `dang_geune_daong`로 이관 (완료)
      - gitleaks 스캔 결과 leak 없음 확인 후 진행
      - 히스토리 유지 (remote 교체 방식, filter-repo 미사용)
+   - `01_FE/05_fires` → 새 계정(`whale5500d`) 저장소 `snowball_dividend`로 이관 (완료)
 2. 결정 사항
    - 저장소 네이밍 규칙 확정: 기본값은 접두사 없음(암묵적 public), private인 경우만 `private_` 접두사 부여
