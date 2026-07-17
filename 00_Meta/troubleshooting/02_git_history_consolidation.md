@@ -20,6 +20,7 @@
 14. [git subtree add 명령어 분해](#트러블-슈팅-14---git-subtree-add-명령어-분해)
 15. [fetch와 merge의 역할 차이](#트러블-슈팅-15---fetch와-merge의-역할-차이)
 16. [remote add → fetch → merge → remote remove 4단계 동작 원리](#트러블-슈팅-16---remote-add--fetch--merge--remote-remove-4단계-동작-원리)
+17. [packed-refs와 loose ref 충돌로 인한 remote 삭제 실패](#트러블-슈팅-17---packed-refs와-loose-ref-충돌로-인한-remote-삭제-실패)
 
 ---
 
@@ -307,3 +308,23 @@ TIL 병합 자체는 이후 스코프 오인(트러블 슈팅 4)이 확인되며
 ### 적용
 
 python/java/javascript, algorithm, math 세 단위 모두 이 4단계 패턴을 그대로 반복 적용해 병합을 완료함.
+
+---
+
+## 트러블 슈팅 17 - packed-refs와 loose ref 충돌로 인한 remote 삭제 실패
+
+### 문제 상황
+
+`git remote remove origin` 실행 시 특정 브랜치(`feature/budgetAccountBarGraph`) ref에서 "cannot lock ref... File exists" 에러가 반복 발생. lock 파일도, 다른 git 프로세스도 존재하지 않는 상태였음.
+
+### 원인 분석
+
+`.git/packed-refs`에 해당 ref가 이미 기록되어 있는 상태에서, git이 삭제를 위해 동일 ref를 loose ref 형태로 다루려다 충돌이 발생함. `ps aux`(프로세스 확인), lock 파일 직접 탐색(`find .git -name "*.lock"`)으로는 발견되지 않았고, `grep <브랜치명> .git/packed-refs`로 packed-refs 안의 잔존 기록을 확인하고서야 원인이 드러남.
+
+### 결정 및 대응
+
+`grep -v <브랜치명> .git/packed-refs`로 해당 라인을 제외한 내용을 임시 파일에 저장 후 원본을 교체하는 방식으로 packed-refs에서 직접 제거. 이후 `git remote remove` 정상 동작함.
+
+### 인사이트
+
+Git의 ref는 개별 파일(loose ref)과 압축 파일(packed-refs) 두 가지 형태로 동시에 존재할 수 있다. 일반적인 lock 관련 에러 대응(프로세스 확인, lock 파일 삭제)으로 해결이 안 될 때는, `packed-refs`도 충돌 후보로 점검해야 한다.
