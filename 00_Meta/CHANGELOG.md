@@ -12,3 +12,12 @@
 3. 관련 문서
    - [GitHub 계정 제한 트러블슈팅](./troubleshooting/01_github_account_restriction.md)
    - [Git History Consolidation 트러블슈팅](./troubleshooting/02_git_history_consolidation.md)
+
+## 2026-07-16 (Repository Consolidation)
+
+1. 진행 작업
+   - `01_FE/04_dang_geune_daong` → 새 계정(`whale5500d`) 저장소 `dang_geune_daong`로 이관 (완료)
+     - gitleaks 스캔 결과 leak 없음 확인 후 진행
+     - 히스토리 유지 (remote 교체 방식, filter-repo 미사용)
+2. 결정 사항
+   - 저장소 네이밍 규칙 확정: 기본값은 접두사 없음(암묵적 public), private인 경우만 `private_` 접두사 부여
