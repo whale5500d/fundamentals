@@ -19,5 +19,6 @@
    - `01_FE/04_dang_geune_daong` → 새 계정(`whale5500d`) 저장소 `01_dang_geune_daong`로 이관 (완료)
    - `01_FE/05_fires` → 새 계정(`whale5500d`) 저장소 `02_snowball`로 이관 (완료)
    - `01_FE/06_account_stop_the_store` → 새 계정(`whale5500d`) 저장소 `03_account_stop_the_store`로 이관 (완료)
+   - `01_FE/02_kakao_enterprise/kakaoenterprise_ce_fe_report_임경락` → 새 계정(`whale5500d`) 저장소 `04_kakao_enterprise_assignment`로 이관 (완료)
 2. 결정 사항
    - 저장소 네이밍 규칙 확정: 기본값은 접두사 없음(암묵적 public), private인 경우만 `private_` 접두사 부여
