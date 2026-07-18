@@ -32,6 +32,7 @@
    - `frontend-mono` → Organization 저장소 `private_frontend-mono`로 이관 (완료, 기본 브랜치 `dev` 유지)
    - `project__front__hyper-liquid` → Personal 계정 저장소 `05_crypto_exchange_clone_hyperliquid`로 이관 (완료, public)
    - `client`(wallet 실행용 백엔드), `project__etc`(연습 코드)는 이번 이관에서 보류
+   - `03_FullStack/01_Ringle` → 새 계정(`whale5500d`) 저장소 `06_ringle_assignment`로 이관 (완료)
 2. 결정 사항
    - `module_*`, `project_*`, `frontend-mono`는 서로 강하게 연관된 프로젝트군이라 판단, Organization(`whale5500d-crypto`)을 신설해 그룹으로 관리하기로 결정
    - Organization 소속 저장소는 넘버링·긴 접두사 없이 `private_원본폴더명` 형식으로 네이밍
