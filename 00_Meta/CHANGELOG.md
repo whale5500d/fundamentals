@@ -36,6 +36,7 @@
    - `02_Projects/01_korean_chatbot` → 별도 저장소 `07_scheduling_ai_chatbot`로 분리 (완료 ✅, `git filter-repo --subdirectory-filter` 방식 사용, 히스토리 보존)
      - `checkpoints/korean_model.pt`는 `.gitignore` 대상이라 히스토리 이관 없이 로컬 파일만 새 위치로 직접 복사
      - `fundamentals`에서 `02_Projects/01_korean_chatbot` 제거 완료
+   - `02_certificate`(AICE BASIC/ASSOCIATE 학습 자료) → `03_Technologies/01_AI/aice_certificate`로 병합 (완료 ✅, filter-repo + merge 방식, 히스토리 보존)
 2. 결정 사항
    - `module_*`, `project_*`, `frontend-mono`는 서로 강하게 연관된 프로젝트군이라 판단, Organization(`whale5500d-crypto`)을 신설해 그룹으로 관리하기로 결정
    - Organization 소속 저장소는 넘버링·긴 접두사 없이 `private_원본폴더명` 형식으로 네이밍
