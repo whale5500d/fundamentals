@@ -22,3 +22,16 @@
    - `01_FE/02_kakao_enterprise/kakaoenterprise_ce_fe_report_임경락` → 새 계정(`whale5500d`) 저장소 `04_kakao_enterprise_assignment`로 이관 (완료)
 2. 결정 사항
    - 저장소 네이밍 규칙 확정: 기본값은 접두사 없음(암묵적 public), private인 경우만 `private_` 접두사 부여
+
+## 2026-07-17 (Repository Consolidation)
+
+1. 진행 작업
+   - `01_dev`가 단일 저장소가 아닌 11개(client, project\_\_etc 제외 시 9개)의 개별 git 히스토리로 구성되어 있음을 확인
+   - `module__front__icon`, `module__front__ui`, `module__front__util` → Organization(`whale5500d-crypto`) 저장소 `private_module__front__icon/ui/util`로 각각 이관 (완료)
+   - `project__front__explorer`, `project__front__bitcoint-landing`, `project__front__dapping-landing`, `project__front__wallet` → Organization 저장소 `private_project__front__*`로 각각 이관 (완료)
+   - `frontend-mono` → Organization 저장소 `private_frontend-mono`로 이관 (완료, 기본 브랜치 `dev` 유지)
+   - `project__front__hyper-liquid` → Personal 계정 저장소 `05_crypto_exchange_clone_hyperliquid`로 이관 (완료, public)
+   - `client`(wallet 실행용 백엔드), `project__etc`(연습 코드)는 이번 이관에서 보류
+2. 결정 사항
+   - `module_*`, `project_*`, `frontend-mono`는 서로 강하게 연관된 프로젝트군이라 판단, Organization(`whale5500d-crypto`)을 신설해 그룹으로 관리하기로 결정
+   - Organization 소속 저장소는 넘버링·긴 접두사 없이 `private_원본폴더명` 형식으로 네이밍
