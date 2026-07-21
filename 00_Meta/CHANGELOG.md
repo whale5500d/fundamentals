@@ -40,3 +40,11 @@
 2. 결정 사항
    - `module_*`, `project_*`, `frontend-mono`는 서로 강하게 연관된 프로젝트군이라 판단, Organization(`whale5500d-crypto`)을 신설해 그룹으로 관리하기로 결정
    - Organization 소속 저장소는 넘버링·긴 접두사 없이 `private_원본폴더명` 형식으로 네이밍
+
+## 2026-07-21 (Repository History Recovery)
+
+1. 진행 작업
+   - `07_scheduling_ai_chatbot` 저장소의 히스토리가 fundamentals 병합 시 압축되어 14개 커밋만 남아있던 문제 발견
+   - `fundamentals` 저장소 내부에서 압축 전 원본 커밋(`9061f71e...`)을 찾아 복구, 52개 원본 히스토리 확보 (Transformer 구현 → RAG 통합 → LangChain/LangGraph 마이그레이션 전 과정)
+   - 복구 작업 중 진행 중이던 신규 작업(held-out 평가 파이프라인 등)을 cherry-pick으로 이식
+   - 최종 56개 커밋 히스토리로 `07_scheduling_ai_chatbot`에 force push 완료
