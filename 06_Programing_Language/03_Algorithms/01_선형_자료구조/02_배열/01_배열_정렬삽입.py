@@ -25,3 +25,4 @@ def solution(array: list[int], value: int) -> list[int]:
     return result
 
 print(solution(input_array, input_value))
+print(output_result)
