@@ -12,6 +12,21 @@
 
 ### 2. Chunking
 
+- 청킹: 긴 문서를 검색과 임베딩에 적합한 크기의 텍스트 조각(청크)으로 분할하는 과정
+  - RAG 시스템을 처음 구축할 때는 청킹 전략보다 파이프라인 전체가 동작하는지 먼저 검증이 우선
+  - 주요 방법(난이도 기준)
+    1. Fixed-size Chunking: 고정된 글자 수 또는 토큰 수
+    2. Regex & Delimiter Chunking: 줄바꿈, 마침표, 제목 등 구분자
+    3. Semantic Chunking: 문장 간 임베딩 유사도
+    4. Parent-Child Chunking: 큰 청크(부모)와 작은 청크(자식) 계층
+
+- 청크 크기 가이드라인
+  - 너무 작으면 문맥이 부족하고, 너무 크면 검색 정확도가 떨어짐.
+  - 용도별 추천 크기
+    - 일반 QA: 500~1000자
+    - 요약: 1000~2000자
+    - 코드: 함수/클래스 단위
+
 ### 3. Embedding
 
 - Tokenization: 텍스트를 모델이 처리할 수 있는 최소 단위로 분리하는 과정
@@ -59,6 +74,8 @@
 ## (Query Step) Retrival
 
 ### 1. Embedding
+
+- _(상기 동일)_
 
 ### 2. Similarity Retrieval
 
