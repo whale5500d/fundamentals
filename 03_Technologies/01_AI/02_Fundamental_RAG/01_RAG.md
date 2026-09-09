@@ -147,4 +147,13 @@
 
 ## (Query Step) Augmentation
 
-## (Query Step) Generation, Validation
+## (Query Step) Generation
+
+- LLM이 입력된 텍스트(입력 프롬프트)를 바탕으로 새로운 텍스트(출력 프롬프트)를 만들어내는 과정
+  - 동작 흐름
+    1. 검색 결과 수신
+    2. 프롬프트 구성 (시스템 지시, 검색된 문서, 사용자 질문)
+    3. LLM 호출
+    4. 답변 반환
+
+## Validation
