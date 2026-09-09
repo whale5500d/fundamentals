@@ -10,6 +10,29 @@
 
 ### 1. Document Loading
 
+- 문서 로딩: 다양한 형식의 원본 문서에서 텍스트를 추출하여 RAG 파이프라인에 투입할 수 있는 형태로 변환하는 과정
+  - 주로 text, metadata를 함께 반환.
+    - text: 파일에서 추출한 텍스트 문자열
+    - metadata: 파일명, 페이지 번호, 생성일, 출처 등 부가 정보. 벡터 DB에 함께 저장하면 Metadata Filtering에 활용 가능
+  - 주요 방법(가벼운 문서 형식 기준)
+    1. txt, markdown: 내장 open() 함수 사용
+    2. PDF: PyPDF2, pdfplumber, PyMuPDF
+    3. HTML: BeautifulSoup
+    4. JSON: 내장 json
+    5. CSV: 내장 csv, pandas
+    6. DOCX: python-docx
+
+#### (Text Preprocessing (텍스트 전처리))
+
+- 문서에서 추출한 텍스트를 청킹, 임베딩 전에 불필요한 노이즈를 제거하고 정리하는 과정
+  - 주요 전처리 작업
+    - 특수/제어 문자 제거: `\x00`, `\xad`
+    - 공백 정규화
+    - 빈 줄 정규화
+    - 헤더/푸터 제거: PDF의 반복 헤더, 페이지 번호(`- 3 -`) 제거
+    - HTML 태그 제거
+    - 유니코드 정규화: NFC/NFKC 정규화
+
 ### 2. Chunking
 
 - 청킹: 긴 문서를 검색과 임베딩에 적합한 크기의 텍스트 조각(청크)으로 분할하는 과정
