@@ -257,3 +257,11 @@
     4. 답변 반환
 
 ## Evaluation
+
+- RAG 파이프라인의 검색 및 생성 품질을 정량적 지표로 측정하는 과정
+  - 검색 품질
+    - Context Precision: 검색된 문맥 중 관련 있는 비율 (노이즈 비율)
+    - Context Recall: 필요한 정보 중 검색된 비율 (정답률)
+  - 생성 품질
+    - Faithfulness: 답변이 검색된 문맥에 충실한 정도 (노이즈 비율)
+    - Answer Relevancy: 답변이 질문에 관련된 정도 (정답률)
