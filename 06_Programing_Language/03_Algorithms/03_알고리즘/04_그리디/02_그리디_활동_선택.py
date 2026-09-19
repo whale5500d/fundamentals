@@ -1,0 +1,51 @@
+# 활동 선택(activity selection)
+# 구간 스케줄링과 동일한 그리디 전략(종료 시간 기준 정렬)을 사용
+# "하나의 자원으로 최대한 많이 선택"하는 것이 아니라
+# "모든 활동을 수행하기 위해 필요한 자원(회의실 등)의 최소 개수"를
+# 구하는 문제로 확장된다.
+
+# 문제
+# 여러 회의의 시작 시간과 종료 시간이 주어질 때
+# 모든 회의를 동시에 진행 가능하게 배정하기 위해
+# 필요한 최소 회의실 개수를 반환하라.
+
+input_list = [(0, 30), (5, 10), (15, 20)]
+output_result = 2 # ((0,30)과 (5,10)이 겹치므로 최소 2개 회의실 필요)
+
+def solution(input_list: list[tuple[int, int]]) -> int:
+    # (방향) 자원이 최대 몇 개까지 겹칠 수 있는지가 최소 자원 개수가 된다.
+
+    # 시작 시간만 모아서 오름차순 정렬
+    start_times = sorted(meeting[0] for meeting in input_list)
+
+    # 종료 시간만 모아서 오름차순 정렬
+    end_times = sorted(meeting[1] for meeting in input_list)
+
+    # 현재 겹치는 회의 수, 최대 겹치는 회의 수
+    current_count = 0
+    max_count = 0
+
+    # 시작 시간 포인터, 종료 시간 포인터 선언
+    start_pointer = 0
+    end_pointer = 0
+
+    # 반복문: 시작 시간 포인터가 전체 회의 수를 다 순회할 때까지
+    while start_pointer < len(input_list):
+        # 조건문: 현재 시작 시간이 현재 종료 시간보다 빠른가
+        if start_times[start_pointer] < end_times[end_pointer]:
+            # 조건 만족 시, 겹치는 회의 수 증가, 시작 시간 포인터 이동
+            current_count += 1
+            start_pointer += 1
+            # 최대 겹치는 회의 수 갱신
+            max_count = max(max_count, current_count)
+
+        # 아닐 경우, 회의가 하나 끝났으므로 겹치는 회의 수 감소, 종료 시간 포인터 이동
+        else:
+            current_count -= 1
+            end_pointer += 1
+
+    # 최대 겹치는 회의 수 반환
+    return max_count
+
+print(solution(input_list))
+print(output_result)
