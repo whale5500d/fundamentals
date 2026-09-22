@@ -20,14 +20,14 @@ def solution(input_list: list[tuple[int, int]]) -> int:
 
     # 개수, 마지막으로 선택된 회의의 종료 시간 초기화
     # 최초 시간은 무조건 카운팅
-
+    
     # 반복문: 모든 회의 시간을 반복
     # 1부터 시작
-        # 현재 시작 시간
-
+        # 현재 시작, 종료 시간
         # last_selected_end보다 큰지 비교
             # 있을 때마다 count 1개씩 추가, 선택된 종료 시작 시간 업데이트
 
+    # 개수 반환
     return -1
 
 print(solution(input_list))

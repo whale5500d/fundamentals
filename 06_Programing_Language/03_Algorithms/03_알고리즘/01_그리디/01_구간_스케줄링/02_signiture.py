@@ -1,8 +1,6 @@
 # 구간 스케줄링(interval scheduling)
 # 여러 개의 시작-종료 시간 구간이 주어질 때
 # 서로 겹치지 않는(non-overlapping) 구간을 최대한 많이 선택하는 문제
-# 그리디 전략은 "종료 시간이 빠른 구간부터 선택"하는 것이다.
-# 이는 남은 시간을 최대한 많이 확보해 이후 선택의 여지를 넓히기 때문에 최적해를 보장한다.
 
 # 문제
 # 여러 회의의 시작 시간과 종료 시간이 주어질 때
@@ -15,28 +13,8 @@ input_list = [
 ] # 입력: 회의 목록
 output_result = 4 # 출력: 예: (1,4), (5,7), (8,11), (12,14) 선택 가능
 
-def solution(input_list: list[tuple[int, int]]) -> int:
-    # (edge case) 이미 종료 시간 기준으로 재정렬이지만, 대응 필요
-    sorted_input_list = sorted(input_list, key=lambda x: x[1])
-
-    # 개수, 마지막으로 선택된 회의의 종료 시간 초기화
-    # 최초 시간은 무조건 카운팅
-    count = 1
-    last_selected_end = sorted_input_list[0][1]
-
-    # 반복문: 모든 회의 시간을 반복
-    for i in range(1, len(sorted_input_list)): # 1부터 시작
-        # 현재 시작, 종료 시간
-        now_start, now_end = sorted_input_list[i]
-
-        # last_selected_end보다 큰지 비교
-        if last_selected_end <= now_start:
-            # 있을 때마다 count 1개씩 추가, 선택된 종료 시작 시간 업데이트
-            count += 1
-            last_selected_end = now_end
-
-    # 개수 반환
-    return count
+def solution(input_list):
+    return -1
 
 print(solution(input_list))
 print(output_result)
