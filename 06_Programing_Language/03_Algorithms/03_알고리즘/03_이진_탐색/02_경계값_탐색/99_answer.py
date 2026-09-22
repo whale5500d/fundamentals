@@ -13,21 +13,30 @@ output_result = 1
 
 def solution(input_list, t):
     # 시작, 끝 인덱스 설정
+    start = 0
+    end = len(input_list)-1
 
     # 결과 초기화
+    result = 0
 
     # 반복문: start보다 end가 작거나 같아질 때까지 순회
+    while start <= end:
         # 중간 인덱스 선언
+        mid = (start + end) // 2
 
         # 조건문: 중간값이 목표값 이상인가
+        if input_list[mid] >= t:
             # 만족할 경우, 이 위치가 lower bound 후보이므로 결과에 저장
+            result = mid
             # 왼쪽에 더 있을 수 있으므로 끝 인덱스를 중간 인덱스-1로 변환
+            end = mid-1
 
         # 만족하지 않을 경우,
+        else:
             # 시작 인덱스를 중간 인덱스+1로 이동
-            
+            start = mid+1
 
-    return -1
+    return result
 
 print(solution(input_list, input_target))
 print(output_result)

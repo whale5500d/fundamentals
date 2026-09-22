@@ -16,18 +16,28 @@ output_result = 3
 def solution_2(input_list: list[int], t: int) -> int:
     # 2. 이진 탐색
     # 시작, 끝 인덱스 설정
+    start = 0
+    end = len(input_list)-1
 
     # 반복문: start가 end보다 커질 때까지 반복
+    while start <= end:
         # 중간 인덱스 설정
+        mid = (start + end) // 2
 
         # 조건문: 중간값이 목표값과 일치한가
+        if input_list[mid] == t:
             # 만족할 경우, 해당 인덱스 반환
+            return mid
 
         # 조건문: 중간값이 목표값보다 작은가
+        elif input_list[mid] < t:
             # 만족할 경우, 시작 인덱스를 중간 인덱스+1로 재할당
+            start = mid+1
 
         # 조건문: 중간값이 목표값보다 큰가
+        else:
             # 만족할 경우, 종료 인덱스를 중간 인덱스-1로 재할당
+            end = mid-1
 
     # 없을 경우 -1 반환
     return -1
@@ -35,11 +45,14 @@ def solution_2(input_list: list[int], t: int) -> int:
 print(solution_2(input_list, input_target))
 print(output_result)
 
-def solution_1(input_list:list[int], t: int) -> int:
+def solution_1(input_list: list[int], t: int) -> int:
     # 1. 완전 탐색
     # 반복문: 배열의 마지막까지 순회
+    for i in range(len(input_list)):
         # 조건문: 목표값과 일치하는지
+        if input_list[i] == t:
             # 만족할 경우, 목표값의 인덱스 반환
+            return i
 
     # 없을 경우 -1 반환
     return -1
