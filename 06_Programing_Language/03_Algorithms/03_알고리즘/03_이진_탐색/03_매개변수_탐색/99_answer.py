@@ -20,23 +20,36 @@ def solution(input_list, t):
     # 현재 나무 길이가 필요한 나무 길이(t)보다 커지면 멈추고, h를 하나 올린다.
     # (반복)
     # 만약 나무들의 높이 리스트를 모두 돌았을 때, t와 일치하면 해당 h를 반환한다.
-    
-    # 현재 절단기 높이(h) 초기화
 
+    # 현재 절단기 높이(h) 초기화
+    h = 0
+    
     # 가장 긴 나무를 이분 탐색의 시작, 끝 기준으로 잡는다.
+    start = 0
+    end = sorted(input_list, reverse=True)[0]
 
     # 반복문: start가 end보다 커지기 전까지 반복
+    while start <= end:
         # 중간 길이
+        mid = (start + end) // 2
 
         # 나무 길이 합산하기
+        total_tree_length = 0
+        for tree_length in input_list:
+            total_tree_length += max(0, tree_length - mid)
 
         # 조건문: 나무 길이의 합산이 t보다 큰가
+        if total_tree_length >= t:
             # 만족할 경우, 중간 길이를 더 높게 설정(시작 인덱스를 중간 값보다 크게 설정)
+            h = mid
+            start = mid + 1
         
         # 나무 길이의 합산이 t보다 작은가
+        else:
             # 만족할 경우, 중간 길이를 더 낮게 설정(종료 인덱스를 중간 값보다 작게 설정)
+            end = mid - 1
 
-    return -1
+    return h
 
 print(solution(input_list, input_target))
 print(output_result)
