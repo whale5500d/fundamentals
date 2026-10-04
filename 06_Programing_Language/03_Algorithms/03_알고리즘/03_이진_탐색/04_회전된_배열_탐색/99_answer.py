@@ -37,6 +37,7 @@ def solution(input_list, t):
             # 아닐 경우: 시작 인덱스를 mid+1로 이동
             else:
                 start = mid+1
+        
         # 아닐 경우(오른쪽 절반(mid ~ end)이 정렬되어 있음)
         else:
             # 조건문: 목표값이 정렬된 오른쪽 절반의 범위 안에 있는가
